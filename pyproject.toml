@@ -1,0 +1,26 @@
+[project]
+name = "sheetvalidation"
+version = "0.1.0"
+description = "Validate changes to tabular data structures"
+readme = "readme.md"
+authors = [
+    { name = "phette23", email = "phette23@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.5.0",
+    "polars>=1.44.2",
+]
+
+[project.scripts]
+sheetvalidation = "sheetvalidation.cli:main "
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+]
