@@ -1,1 +1,1 @@
-from lib import validate
+from .lib import validate as validate
