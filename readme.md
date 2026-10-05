@@ -2,6 +2,33 @@
 
 Check a tabular data file against another one to see if they share the same structure. This is meant to be a quick check that's useful without needing to build a data dictionary or schema; you can take an existing metadata spreadsheet and compare it to a new one to see if their structures match (same columns with same data types). For instance, you can edit `authorities.csv` and compare it with the original `authorities.csv.bak` to see if the changes you made are valid.
 
+**WIP** (it don't do anything yet)
+
+## Example
+
+Say we have a spreadsheet with an `Age` column and we accidentally change one of its values to be a string.
+
+Original data:
+
+| Name | Age |
+| ----- | --- |
+| Audre | 30 |
+| Herman | 25 |
+
+Edited data:
+
+| Name | Age |
+| ----- | --- |
+| Audre | Lorde |
+| Herman | 25 |
+
+```sh
+uv run sheetvalidation original.csv edited.csv
+Error: edited.csv Row 1 Column Age: expected Int64, got String
+```
+
+The goal is for this tool to catch these types of errors.
+
 ## Setup
 
 ```sh
