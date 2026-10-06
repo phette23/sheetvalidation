@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from .lib import validate
+from .lib import SheetValidationError, validate
 
 
 @click.command()
@@ -16,7 +16,7 @@ from .lib import validate
     help="Columns to ignore during validation.",
     type=str,
 )
-def main(files: list[Path], ignore_columns: str) -> None:
+def main(files: list[Path], ignore_columns: str) -> list[SheetValidationError]:
     """
     \b
     Validate tabular data structures match. Example:
@@ -26,4 +26,8 @@ def main(files: list[Path], ignore_columns: str) -> None:
         raise click.UsageError("At least two files must be provided for validation.")
 
     print(f"Validating {len(files) - 1} file(s) against {files[0]}...")
-    validate(files[0], files[1:])
+    errors: list[SheetValidationError] = validate(files[0], files[1:])
+    # TODO better output
+    for error in errors:
+        print(error["message"])
+    return errors

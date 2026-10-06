@@ -1,10 +1,16 @@
 from pathlib import Path
+from typing import Any
 
 import fastexcel
 import polars as pl
 import pytest
 
-from sheetvalidation.lib import data_to_schema, read_csv_or_excel
+from sheetvalidation.lib import (
+    SheetValidationError,
+    data_to_schema,
+    read_csv_or_excel,
+    validate_file,
+)
 
 
 @pytest.mark.parametrize(
@@ -66,13 +72,88 @@ def test_read_csv_or_excel_raises_for_empty_file(tmp_path) -> None:
     [
         (
             pl.DataFrame({"id": [1], "name": ["Ada"], "active": [True]}),
-            {"id": "Int64", "name": "String", "active": "Boolean"},
+            {"id": pl.Int64, "name": pl.String, "active": pl.Boolean},
         ),
         (
             pl.DataFrame(schema={"id": pl.Int64, "name": pl.String}),
-            {"id": "Int64", "name": "String"},
+            {"id": pl.Int64, "name": pl.String},
         ),
     ],
 )
-def test_data_to_schema(data: pl.DataFrame, expected: dict[str, str]) -> None:
+def test_data_to_schema(data: pl.DataFrame, expected: dict[str, pl.DataType]) -> None:
     assert data_to_schema(data) == expected
+
+
+@pytest.mark.parametrize(
+    ("contents", "expected_error"),
+    [
+        (
+            "id,Age\n1,Lorde\n2,25\n",
+            [
+                {
+                    "row": 1,
+                    "original_column_type": "Int64",
+                    "cell_type": "String",
+                    "message": "Row 1, Column Age: expected Int64, got String",
+                }
+            ],
+        ),
+        (
+            "id,Age,active\nx,30,true\n2,thirty,false\n",
+            [
+                {
+                    "row": 1,
+                    "original_column_type": "Int64",
+                    "cell_type": "String",
+                    "message": "Row 1, Column id: expected Int64, got String",
+                },
+                {
+                    "row": 2,
+                    "original_column_type": "Int64",
+                    "cell_type": "String",
+                    "message": "Row 2, Column Age: expected Int64, got String",
+                },
+            ],
+        ),
+        ("id,Age\n1,\n2,25\n", []),
+        ("id,Age,notes\n1,25,new\n2,30,columns\n", []),
+        (
+            "id,Age\n1,25\n2,not-a-number\n",
+            [
+                {
+                    "row": 2,
+                    "original_column_type": "Int64",
+                    "cell_type": "String",
+                    "message": "Row 2, Column Age: expected Int64, got String",
+                }
+            ],
+        ),
+    ],
+)
+def test_validate_file_checks_cells_against_schema(
+    tmp_path, contents: str, expected_error: list[dict[str, object]]
+) -> None:
+    edited_file: Path = tmp_path / "edited.csv"
+    edited_file.write_text(contents, encoding="utf-8")
+    schema: dict[str, pl.DataType] = data_to_schema(
+        pl.DataFrame(
+            schema={
+                "id": pl.Int64,
+                "Age": pl.Int64,
+                "active": pl.Boolean,
+            }
+        )
+    )
+
+    errors: list[SheetValidationError] = validate_file(schema, edited_file)
+
+    actual_errors: list[dict[str, Any]] = [
+        {
+            "row": error["row"],
+            "original_column_type": error["original_column_type"],
+            "cell_type": error["cell_type"],
+            "message": error["message"],
+        }
+        for error in errors
+    ]
+    assert actual_errors == expected_error
