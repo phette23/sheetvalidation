@@ -22,8 +22,7 @@ Edited data:
 
 ```sh
 uv run sheetvalidation original.csv edited.csv
-# TODO which file the error is in when there are multiple
-Row 1 Column Age: expected Int64, got String
+Row 1 Column Age: expected Int64, got String "Lorde"
 ```
 
 The goal is for this tool to catch these types of errors.

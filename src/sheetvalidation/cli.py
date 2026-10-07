@@ -27,7 +27,9 @@ def main(files: list[Path], ignore_columns: str) -> list[SheetValidationError]:
 
     print(f"Validating {len(files) - 1} file(s) against {files[0]}...")
     errors: list[SheetValidationError] = validate(files[0], files[1:])
-    # TODO better output
     for error in errors:
-        print(error["message"])
+        if len(files) > 2:
+            print(f"{error['edited_file']} - {error['message']}")
+        else:
+            print(error["message"])
     return errors

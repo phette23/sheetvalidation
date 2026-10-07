@@ -74,7 +74,7 @@ def validate_file(
                         cell_type=cell_type,
                         message=(
                             f"Row {row_index + 1}, Column {column}: expected "
-                            f"{original_column_type}, got {cell_type}"
+                            f'{original_column_type}, got {cell_type} "{cell}"'
                         ),
                         # Index rows from 1, not 0
                         row=row_index + 1,
