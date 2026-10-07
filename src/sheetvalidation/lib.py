@@ -17,11 +17,9 @@ def read_csv_or_excel(file_path: Path) -> pl.DataFrame:
     """Abstract over CSV, TSV, or Excel input."""
     if file_path.suffix in [".csv", ".tsv"]:
         separator = "\t" if file_path.suffix == ".tsv" else ","
-        return pl.DataFrame(
-            pl.read_csv(file_path, separator=separator, raise_if_empty=True)
-        )
+        return pl.read_csv(file_path, separator=separator, raise_if_empty=True)
     elif file_path.suffix in [".xls", ".xlsx"]:
-        return pl.DataFrame(pl.read_excel(file_path, raise_if_empty=True))
+        return pl.read_excel(file_path, raise_if_empty=True)
     else:
         raise ValueError(
             f"{file_path.name}: unable to guess file type from extension. Expecting .csv, .tsv, .xls, or .xlsx"

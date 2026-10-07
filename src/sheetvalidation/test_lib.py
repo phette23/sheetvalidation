@@ -9,8 +9,11 @@ from sheetvalidation.lib import (
     SheetValidationError,
     data_to_schema,
     read_csv_or_excel,
+    validate,
     validate_file,
 )
+
+EXCEL_FIXTURE: Path = Path(__file__).parent / "fixtures" / "excel.xlsx"
 
 
 @pytest.mark.parametrize(
@@ -37,6 +40,18 @@ def test_read_csv_or_excel_reads_delimited_files(
     result: pl.DataFrame = read_csv_or_excel(file_path)
 
     assert result.equals(expected)
+
+
+def test_read_csv_or_excel_reads_excel_fixture() -> None:
+    result: pl.DataFrame = read_csv_or_excel(EXCEL_FIXTURE)
+
+    assert result.shape == (1, 3)
+    assert result.schema == {
+        "Title": pl.String,
+        "Number": pl.Int64,
+        "Empty": pl.String,
+    }
+    assert result.to_dicts() == [{"Title": "String", "Number": 1, "Empty": None}]
 
 
 @pytest.mark.parametrize("suffix", [".xls", ".xlsx"])
@@ -84,6 +99,10 @@ def test_data_to_schema(data: pl.DataFrame, expected: dict[str, pl.DataType]) ->
     assert data_to_schema(data) == expected
 
 
+def test_validate_reads_excel_fixture() -> None:
+    assert validate(EXCEL_FIXTURE, [EXCEL_FIXTURE]) == []
+
+
 @pytest.mark.parametrize(
     ("contents", "expected_error"),
     [
@@ -94,7 +113,7 @@ def test_data_to_schema(data: pl.DataFrame, expected: dict[str, pl.DataType]) ->
                     "row": 1,
                     "original_column_type": "Int64",
                     "cell_type": "String",
-                    "message": "Row 1, Column Age: expected Int64, got String",
+                    "message": 'Row 1, Column Age: expected Int64, got String "Lorde"',
                 }
             ],
         ),
@@ -105,13 +124,13 @@ def test_data_to_schema(data: pl.DataFrame, expected: dict[str, pl.DataType]) ->
                     "row": 1,
                     "original_column_type": "Int64",
                     "cell_type": "String",
-                    "message": "Row 1, Column id: expected Int64, got String",
+                    "message": 'Row 1, Column id: expected Int64, got String "x"',
                 },
                 {
                     "row": 2,
                     "original_column_type": "Int64",
                     "cell_type": "String",
-                    "message": "Row 2, Column Age: expected Int64, got String",
+                    "message": 'Row 2, Column Age: expected Int64, got String "thirty"',
                 },
             ],
         ),
@@ -124,7 +143,7 @@ def test_data_to_schema(data: pl.DataFrame, expected: dict[str, pl.DataType]) ->
                     "row": 2,
                     "original_column_type": "Int64",
                     "cell_type": "String",
-                    "message": "Row 2, Column Age: expected Int64, got String",
+                    "message": 'Row 2, Column Age: expected Int64, got String "not-a-number"',
                 }
             ],
         ),
