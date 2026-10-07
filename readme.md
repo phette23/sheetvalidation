@@ -54,8 +54,8 @@ errors = validate("original.csv", ["edited.csv"])
 for e in errors:
     # errors are dicts like
     # { "original_file": "original.csv", "edited_file": "edited.csv",
-    # "original_column_type": "float", "edited_column_type": "str",
-    # "message": "Columns have different data types" }
+    # "original_column_type": "Float", "edited_column_type": "String", "row": 1,
+    # "message": "Row 1 Column Age: expected Float, got String \"Value\"" }
     print(e)
 ```
 
